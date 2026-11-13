@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Adventure Cove – Integrated Management System
 
-## Getting Started
+Next.js 15 + Supabase (+ Hygraph from Phase 3). Business rules: `docs/REQUIREMENTS-DECISIONS.md`.
 
-First, run the development server:
+## Phase 1 – what's included
+- Staff login, roles (Owner / Manager / Cashier / Staff), first-time owner setup (`/setup`)
+- Family & child registration – at the desk (`/desk/register`) or by parents online (`/register`)
+- Permanent child QR – printable card (`/cards/<childId>`) + digital card (`/my-card/<token>`)
+- Front desk (`/desk`): USB scanner or camera scan → profile with allergy warnings → check-in siblings together → timers start
+- Visit screen: live timers, running family bill, VR / snacks / retail, staff buddy (hourly + commission), split payments, one invoice
+- Pricing engine: tiered hourly (first hour / next hour) with per-hour buffer, sibling %, configurable taxes
+- Play-area TV (`/display?token=…`): first name, timer, amber warning before next hour
+- Admin: settings & pricing (Owner), products/VR/stock with low-stock alerts, staff accounts
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Setup
+1. Create a Supabase project.
+2. Supabase → SQL Editor → run `supabase/migrations/0001_core.sql`.
+3. Copy `.env.example` → `.env.local` and fill in the URL, anon key and service-role key.
+4. `npm install` then `npm run dev` → open http://localhost:3000/setup to create the Owner.
+5. Admin → Settings: set a display token, then open `/display?token=<token>` on the play-area TV.
+6. Admin → Products: add VR games, snacks and retail items.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tests
+`npm test` – pricing engine unit tests (Node built-in test runner).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+- All writes go through server actions using the service-role key **after** a role check; RLS gives staff read-only access (used for realtime).
+- Checkout, stock decrement and item removal run in Postgres functions (single transaction).
+- SMS / email / payment gateways are not connected yet.
